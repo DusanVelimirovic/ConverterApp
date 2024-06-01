@@ -6,8 +6,10 @@ bool converterActive = true;
 
 while (converterActive)
 {
-    // Display a conversion menu
-    Console.WriteLine("Conversions menu: 1-Meters to Kilometers, 2-Meters to Centimeters... ");
+    try
+    {
+        // Display a conversion menu
+        Console.WriteLine("Conversions menu: 1-Meters to Kilometers, 2-Meters to Centimeters... ");
 
     // Prompt user to choose from conversion menu
     Console.Write("Choose from above menu, enter the number of conversion: ");
@@ -54,19 +56,33 @@ while (converterActive)
                     result = ConvertMetersToCentimeters(conversionValue);
                     Console.WriteLine(conversionValue + " meters is " + result + " centimeters");
                     break;
-            }
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid menu choice.");
+                }
 
-            // Prompt user to choose if he want to continue to use a convertor
-            Console.Write("Press Y for exit a convertor or N to continue ");
-            string exitTheGame = Console.ReadLine();
-            bool userChoose = endOfConvertor(exitTheGame);
-            if (!userChoose)
-            {
-                converterActive = false;
-            }
-        } 
+                // Prompt user to choose if he wants to continue using the converter
+                Console.Write("Press Y to exit the converter or any other key to continue: ");
+                string exitInput = Console.ReadLine();
+                if (exitInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                {
+                    converterActive = false;
+                }
+            } 
     }
-    
+    }
+    catch (FormatException fe)
+    {
+        Console.WriteLine("Input format is incorrect. Please enter valid numbers.");
+    }
+    catch (ArgumentOutOfRangeException ae)
+    {
+        Console.WriteLine(ae.Message);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("An unexpected error occurred: " + ex.Message);
+    }
+
 }
 
 // Logic for converting meters to kilometers
