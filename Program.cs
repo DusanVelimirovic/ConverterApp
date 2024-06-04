@@ -1,123 +1,78 @@
 ﻿using System;
-using System.Collections.Generic;
+using ConverterApp.Conversions;
+using ConverterApp.Utilities;
+using static ConverterApp.Conversions.LengthConversions;
 
-// Interface for conversion
-public interface IConversion
+class Program
 {
-    double Convert(double value);
-    string Description { get; }
-}
-
-// Meters to Kilometers conversion
-public class MetersToKilometers : IConversion
-{
-    public double Convert(double value) => value / 1000;
-    public string Description => "Meters to Kilometers";
-}
-
-// Meters to Centimeters conversion
-public class MetersToCentimeters : IConversion
-{
-    public double Convert(double value) => value * 100;
-    public string Description => "Meters to Centimeters";
-}
-
-// Conversion Manager to handle conversions
-public class ConversionManager
-{
-    private readonly Dictionary<int, IConversion> conversions = new();
-
-    public ConversionManager()
-    {
-        // Register available conversions
-        conversions.Add(1, new MetersToKilometers());
-        conversions.Add(2, new MetersToCentimeters());
-    }
-
-    public void DisplayMenu()
-    {
-        Console.WriteLine("Conversions menu:");
-        foreach (var conversion in conversions)
-        {
-            Console.WriteLine($"{conversion.Key} - {conversion.Value.Description}");
-        }
-    }
-
-    public bool TryGetConversion(int choice, out IConversion conversion) => conversions.TryGetValue(choice, out conversion);
-}
-
-// User interaction handler
-public class UserInteraction
-{
-    public int GetUserMenuChoice()
-    {
-        Console.Write("Choose from above menu, enter the number of conversion: ");
-        if (int.TryParse(Console.ReadLine(), out int choice))
-        {
-            return choice;
-        }
-        throw new FormatException("Invalid input. Please enter a valid number.");
-    }
-
-    public double GetUserConversionValue()
-    {
-        Console.Write("Enter value: ");
-        if (double.TryParse(Console.ReadLine(), out double value))
-        {
-            return value;
-        }
-        throw new FormatException("Invalid input. Please enter a valid number.");
-    }
-
-    public bool PromptForExit()
-    {
-        Console.Write("Press Y to exit the converter or any other key to continue: ");
-        return Console.ReadLine().Equals("Y", StringComparison.OrdinalIgnoreCase);
-    }
-}
-
-// Main application class
-public class ConverterApplication
-{
-    private readonly ConversionManager conversionManager;
-    private readonly UserInteraction userInteraction;
-
-    public ConverterApplication()
-    {
-        conversionManager = new ConversionManager();
-        userInteraction = new UserInteraction();
-    }
-
-    public void Run()
+    static void Main(string[] args)
     {
         bool converterActive = true;
+
+        var conversionManager = new ConversionManager();
+        conversionManager.RegisterConversion(new MetersToKilometers());
+        conversionManager.RegisterConversion(new MetersToCentimeters());
 
         while (converterActive)
         {
             try
             {
-                conversionManager.DisplayMenu();
-                int choice = userInteraction.GetUserMenuChoice();
-                if (conversionManager.TryGetConversion(choice, out IConversion conversion))
-                {
-                    double value = userInteraction.GetUserConversionValue();
-                    double result = conversion.Convert(value);
-                    Console.WriteLine($"Convert {value} meters to {conversion.Description.Split(' ')[2]}");
-                    Console.WriteLine($"{value} meters is {result} {conversion.Description.Split(' ')[2]}");
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("Invalid menu choice.");
-                }
+                // Display a conversion menu
+                Console.WriteLine("Conversions menu: 1-Meters to Kilometers, 2-Meters to Centimeters... ");
 
-                if (userInteraction.PromptForExit())
+                // Prompt user to choose from conversion menu
+                Console.Write("Choose from above menu, enter the number of conversion: ");
+
+                // Store user choice
+                string keyMenu = Console.ReadLine();
+
+                // Validate user menu input
+                bool resultValidation = InputValidator.ValidateUserMenuInput(keyMenu);
+
+                if (resultValidation)
                 {
-                    converterActive = false;
+                    // Parse user input menu choice
+                    int.TryParse(keyMenu, out int choice);
+
+                    // Prompt user to enter value for conversion
+                    Console.Write("Enter value: ");
+
+                    // Store value for conversion
+                    string value = Console.ReadLine();
+
+                    // Validate user value for conversion
+                    bool resultValueValidation = InputValidator.ValidateUserConversionValue(value);
+
+                    if (resultValueValidation)
+                    {
+                        // Parse a value for conversion to double
+                        double.TryParse(value, out double conversionValue);
+
+                        // Perform conversion
+                        var conversion = conversionManager.GetConversion(choice);
+                        if (conversion != null)
+                        {
+                            double result = conversion.Convert(conversionValue);
+                            Console.WriteLine($"{conversionValue} {conversion.FromUnit} is {result} {conversion.ToUnit}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid conversion choice.");
+                        }
+
+                        // Prompt user to choose if he wants to continue using the converter
+                        Console.Write("Press Y to exit the converter or any other key to continue: ");
+                        string exitInput = Console.ReadLine();
+                        if (exitInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                        {
+                            converterActive = false;
+                        }
+                    }
                 }
             }
             catch (FormatException fe)
             {
-                Console.WriteLine(fe.Message);
+                Console.WriteLine("Input format is incorrect. Please enter valid numbers.");
             }
             catch (ArgumentOutOfRangeException ae)
             {
@@ -128,15 +83,5 @@ public class ConverterApplication
                 Console.WriteLine("An unexpected error occurred: " + ex.Message);
             }
         }
-    }
-}
-
-// Entry point
-class Program
-{
-    static void Main()
-    {
-        ConverterApplication app = new ConverterApplication();
-        app.Run();
     }
 }
