@@ -1,130 +1,142 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System;
+using System.Collections.Generic;
 
-using System.Diagnostics.Metrics;
-
-bool converterActive = true;
-
-while (converterActive)
+// Interface for conversion
+public interface IConversion
 {
-    try
+    double Convert(double value);
+    string Description { get; }
+}
+
+// Meters to Kilometers conversion
+public class MetersToKilometers : IConversion
+{
+    public double Convert(double value) => value / 1000;
+    public string Description => "Meters to Kilometers";
+}
+
+// Meters to Centimeters conversion
+public class MetersToCentimeters : IConversion
+{
+    public double Convert(double value) => value * 100;
+    public string Description => "Meters to Centimeters";
+}
+
+// Conversion Manager to handle conversions
+public class ConversionManager
+{
+    private readonly Dictionary<int, IConversion> conversions = new();
+
+    public ConversionManager()
     {
-        // Display a conversion menu
-        Console.WriteLine("Conversions menu: 1-Meters to Kilometers, 2-Meters to Centimeters... ");
+        // Register available conversions
+        conversions.Add(1, new MetersToKilometers());
+        conversions.Add(2, new MetersToCentimeters());
+    }
 
-    // Prompt user to choose from conversion menu
-    Console.Write("Choose from above menu, enter the number of conversion: ");
-
-    // Store user choose
-    string keyMenu = Console.ReadLine();
-
-    // Validate user menu input
-    bool resultValidation = ValidateUserMenuInput(keyMenu);
-
-    if (resultValidation) {
-
-        // Parse user input menu choice
-
-        int.TryParse(keyMenu, out int choice);
-
-        // Prompt user to enter value for conversion
-        Console.Write("Enter value: ");
-
-        // Store value for conversion
-        string value = Console.ReadLine();
-
-        // Validate user value for conversion
-        bool resultValueValidation = ValidateUserConversionValue(value);
-
-        if (resultValueValidation)
+    public void DisplayMenu()
+    {
+        Console.WriteLine("Conversions menu:");
+        foreach (var conversion in conversions)
         {
-            // Parse a value for conversion to double
-            double.TryParse(value, out double conversionValue);
+            Console.WriteLine($"{conversion.Key} - {conversion.Value.Description}");
+        }
+    }
 
+    public bool TryGetConversion(int choice, out IConversion conversion) => conversions.TryGetValue(choice, out conversion);
+}
 
-            // Controle structure based on user choice
-            double result = 0; // Initial value
+// User interaction handler
+public class UserInteraction
+{
+    public int GetUserMenuChoice()
+    {
+        Console.Write("Choose from above menu, enter the number of conversion: ");
+        if (int.TryParse(Console.ReadLine(), out int choice))
+        {
+            return choice;
+        }
+        throw new FormatException("Invalid input. Please enter a valid number.");
+    }
 
-            switch (choice)
+    public double GetUserConversionValue()
+    {
+        Console.Write("Enter value: ");
+        if (double.TryParse(Console.ReadLine(), out double value))
+        {
+            return value;
+        }
+        throw new FormatException("Invalid input. Please enter a valid number.");
+    }
+
+    public bool PromptForExit()
+    {
+        Console.Write("Press Y to exit the converter or any other key to continue: ");
+        return Console.ReadLine().Equals("Y", StringComparison.OrdinalIgnoreCase);
+    }
+}
+
+// Main application class
+public class ConverterApplication
+{
+    private readonly ConversionManager conversionManager;
+    private readonly UserInteraction userInteraction;
+
+    public ConverterApplication()
+    {
+        conversionManager = new ConversionManager();
+        userInteraction = new UserInteraction();
+    }
+
+    public void Run()
+    {
+        bool converterActive = true;
+
+        while (converterActive)
+        {
+            try
             {
-                case 1:
-                    Console.WriteLine("Convert " + conversionValue + " meters to kilometers");
-                    result = ConvertMetersToKilometers(conversionValue);
-                    Console.WriteLine(conversionValue + " meters is " + result + " kilometers");
-                    break;
-                case 2:
-                    Console.WriteLine("Convert " + conversionValue + " meters to centimeters");
-                    result = ConvertMetersToCentimeters(conversionValue);
-                    Console.WriteLine(conversionValue + " meters is " + result + " centimeters");
-                    break;
-                default:
+                conversionManager.DisplayMenu();
+                int choice = userInteraction.GetUserMenuChoice();
+                if (conversionManager.TryGetConversion(choice, out IConversion conversion))
+                {
+                    double value = userInteraction.GetUserConversionValue();
+                    double result = conversion.Convert(value);
+                    Console.WriteLine($"Convert {value} meters to {conversion.Description.Split(' ')[2]}");
+                    Console.WriteLine($"{value} meters is {result} {conversion.Description.Split(' ')[2]}");
+                }
+                else
+                {
                     throw new ArgumentOutOfRangeException("Invalid menu choice.");
                 }
 
-                // Prompt user to choose if he wants to continue using the converter
-                Console.Write("Press Y to exit the converter or any other key to continue: ");
-                string exitInput = Console.ReadLine();
-                if (exitInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                if (userInteraction.PromptForExit())
                 {
                     converterActive = false;
                 }
-            } 
+            }
+            catch (FormatException fe)
+            {
+                Console.WriteLine(fe.Message);
+            }
+            catch (ArgumentOutOfRangeException ae)
+            {
+                Console.WriteLine(ae.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An unexpected error occurred: " + ex.Message);
+            }
+        }
     }
-    }
-    catch (FormatException fe)
-    {
-        Console.WriteLine("Input format is incorrect. Please enter valid numbers.");
-    }
-    catch (ArgumentOutOfRangeException ae)
-    {
-        Console.WriteLine(ae.Message);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("An unexpected error occurred: " + ex.Message);
-    }
-
 }
 
-// Logic for converting meters to kilometers
-static double ConvertMetersToKilometers(double meters)
+// Entry point
+class Program
 {
-    return meters / 1000;
-}
-
-// Logic for converting meters to centimeters
-static double ConvertMetersToCentimeters(double meters)
-{
-    return meters * 100;
-}
-
-// Shut down convertor
-static bool endOfConvertor(string stopConvertor)
-{
-    if (stopConvertor == "Y")
+    static void Main()
     {
-        return false; // or any appropriate logic
+        ConverterApplication app = new ConverterApplication();
+        app.Run();
     }
-    return true; // assuming the game continues if the input is not "Y"
-}
-
-// Validate user menu input
-static bool ValidateUserMenuInput(string menu)
-{
-    if (!int.TryParse(menu, out int choice) || choice < 0)
-    {
-        Console.Write("Invalid input. Please enter a valid number from meny: ");
-        return false;
-    }
-    return true;
-}
-
-// Validate user value for conversion
-static bool ValidateUserConversionValue(string value)
-{
-    if (!double.TryParse(value, out double conversionValue) || conversionValue < 0 || conversionValue > double.MaxValue || conversionValue < double.MinValue)
-    {
-        Console.Write("Invalid input. Please enter a valid number");
-        return false;
-    }
-    return true;
 }
