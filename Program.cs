@@ -1,4 +1,6 @@
-﻿using System;
+// The main entry point for the application. It handles the user interaction and uses the conversion manager to perform conversions
+
+using System;
 using ConverterApp.Conversions;
 using ConverterApp.Utilities;
 using static ConverterApp.Conversions.LengthConversions;
@@ -7,11 +9,11 @@ class Program
 {
     static void Main(string[] args)
     {
-        bool converterActive = true;
+        bool converterActive = true; // Holding active state value
 
-        var conversionManager = new ConversionManager();
-        conversionManager.RegisterConversion(new MetersToKilometers());
-        conversionManager.RegisterConversion(new MetersToCentimeters());
+        var conversionManager = new ConversionManager(); // Object responsible for perfoming conversion methods
+        conversionManager.RegisterConversion(new MetersToKilometers()); // Calling conversinon method
+        conversionManager.RegisterConversion(new MetersToCentimeters()); // Calling conversion method
 
         while (converterActive)
         {
