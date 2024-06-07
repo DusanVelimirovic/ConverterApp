@@ -1,4 +1,5 @@
-﻿using System;
+// Strategy interface implemented by ConversionManager object (Strategy object)
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
