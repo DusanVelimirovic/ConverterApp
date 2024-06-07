@@ -9,10 +9,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        bool converterActive = true; // Holding active state value
+        bool converterActive = true; // Holding active state value. Value responsible for running or not running the app
 
-        var conversionManager = new ConversionManager(); // Object responsible for perfoming conversion methods
-        conversionManager.RegisterConversion(new MetersToKilometers()); // Calling conversinon method
+        var conversionManager = new ConversionManager(); // Strategy Object responsible for connecting with different strategies
+        conversionManager.RegisterConversion(new MetersToKilometers()); // Calling conversion method
         conversionManager.RegisterConversion(new MetersToCentimeters()); // Calling conversion method
 
         while (converterActive)
@@ -25,10 +25,10 @@ class Program
                 // Prompt user to choose from conversion menu
                 Console.Write("Choose from above menu, enter the number of conversion: ");
 
-                // Store user choice
+                // Store user menu value
                 string keyMenu = Console.ReadLine();
 
-                // Validate user menu input
+                // Validate user menu value with InputValidator
                 bool resultValidation = InputValidator.ValidateUserMenuInput(keyMenu);
 
                 if (resultValidation)
@@ -42,7 +42,7 @@ class Program
                     // Store value for conversion
                     string value = Console.ReadLine();
 
-                    // Validate user value for conversion
+                    // Validate user value for conversion using InputValidator
                     bool resultValueValidation = InputValidator.ValidateUserConversionValue(value);
 
                     if (resultValueValidation)
