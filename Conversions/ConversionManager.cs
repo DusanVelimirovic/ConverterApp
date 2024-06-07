@@ -17,6 +17,7 @@ namespace ConverterApp.Conversions
         // Retrieves a conversion strategy based on its unique identifier
         public IConversion GetConversion(int id)
         {
+            // Method to find the first conversion in the _conversions list that matches the provided id. If no such conversion is found, it returns null.
             return _conversions.FirstOrDefault(c => c.Id == id);
         }
     }
